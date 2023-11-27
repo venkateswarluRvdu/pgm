@@ -1,0 +1,271 @@
+select * from fusers;
+select database();
+# see the databases available in server
+SHOW databases;
+#create database name--Productdb
+create database productdb;
+# delete database see below
+drop database productdb;
+#To create any toble in DB see below
+#create table inside databse see
+create table if not exists product(
+   productID int,
+   productcode char(3),
+   name varchar(30),
+   quantity int,
+   price decimal(7,2),
+   primary key(productID)
+);
+# primary key -- unique--non repeatable key
+# to see tables and all
+SHOW tables;
+use productdb;
+# insert rows into table product-- see how values would insert
+insert into product values(1010,'PEN','Red pen',5000,10.50);
+# Read the record
+select * from producttable;
+create table if not exists EmployeeDetails(
+EmpId int,
+FullName varchar(120),
+ManagerId int,
+DateOfJoining date,
+City varchar(120),
+primary key(EmpId)
+);
+create table if not exists EmployeeSalary (
+EmpId int,
+Project varchar(120),
+Salary int,
+Variable float,
+primary key(EmpId),
+foreign key(EmpId) references EmployeeDetails(EmpId)
+     );
+insert into EmployeeSalary values(421,	'P1',	12000,	0);
+select * from EmployeeDetails;
+select * from EmployeeSalary;
+insert into EmployeeDetails values(421,'Kuldeep Rana',876,'2011-4-21','New Delhi');
+drop table EmployeeDetails;
+#only empid and full name
+SELECT  EmpId, FullName
+FROM EmployeeDetails
+WHERE ManagerId = 986;
+#distinct clause --unique values 
+SELECT DISTINCT(Project)
+FROM EmployeeSalary;
+
+SELECT DISTINCT(EmpId)
+FROM EmployeeSalary;
+# count of enmployees in project p1--display number of employees
+SELECT COUNT(*) 
+FROM EmployeeSalary 
+WHERE Project = 'P1';
+# to see max,avg,min salary in table see
+SELECT Max(Salary), 
+Min(Salary), 
+AVG(Salary) 
+FROM EmployeeSalary;
+#salary lies between 9000 and 150000
+SELECT EmpId, Salary
+FROM EmployeeSalary
+WHERE Salary BETWEEN 9000 AND 15000;
+#-mangeid and city through gather empid,city,managerid
+SELECT EmpId, City, ManagerId
+FROM EmployeeDetails
+WHERE City='Toronto' AND ManagerId='321';
+#either city or manageid matched data
+SELECT EmpId, City, ManagerId
+FROM EmployeeDetails
+WHERE City='California' OR ManagerId='321';
+#empid other than the project p1 see
+SELECT EmpId
+FROM EmployeeSalary
+WHERE NOT Project='P1';
+#or <>--not
+SELECT EmpId
+FROM EmployeeSalary
+WHERE Project <> 'P1';
+# salary+variable column total 
+SELECT EmpId,
+Salary+Variable as TotalSalary 
+FROM EmployeeSalary;
+#begin with any char and next "hn" and last any char display see
+SELECT FullName
+FROM EmployeeDetails
+WHERE FullName LIKE '__hn%';
+#unique empid both tables --UNION
+SELECT EmpId FROM EmployeeDetails
+UNION 
+SELECT EmpId FROM EmployeeSalary;
+#common records of both tables
+SELECT * FROM EmployeeSalary
+INTERSECT
+SELECT * FROM ManagerSalary;
+#or
+SELECT *
+FROM EmployeeSalary
+WHERE EmpId IN 
+(SELECT EmpId from ManagerSalary);
+------------------
+# different data from both table-- data prsent one table but not present another table
+SELECT * FROM EmployeeSalary
+MINUS
+SELECT * FROM EmployeeDetails;
+#or
+SELECT * FROM EmployeeSalary
+WHERE NOT EXISTS (
+    SELECT * FROM EmployeeDetails
+    WHERE EmployeeSalary.EmpId = EmployeeDetails.EmpId
+);
+#or
+SELECT EmployeeSalary.*
+FROM EmployeeSalary
+LEFT JOIN
+EmployeeDetails USING (EmpId)
+WHERE EmployeeDetails.EmpId IS NULL;
+#to get empid both table
+SELECT EmpId FROM 
+EmployeeDetails 
+where EmpId IN 
+(SELECT EmpId FROM EmployeeSalary);
+#to get empid in employee details
+SELECT EmpId FROM 
+EmployeeDetails 
+where EmpId Not IN 
+(SELECT EmpId FROM EmployeeSalary);
+#to get employe full name replace with space "_"
+SELECT REPLACE(FullName, ' ', '-') 
+FROM EmployeeDetails;
+#position of give char in full name -we will get snow position is 6th from 0 to start
+SELECT INSTR(FullName, 'Snow')
+FROM EmployeeDetails;
+#empid and managerid together display
+SELECT CONCAT(EmpId, ManagerId) as NewId
+FROM EmployeeDetails;
+#to locate first name before space of full name
+SELECT MID(FullName, 1, LOCATE(' ',FullName)) 
+FROM EmployeeDetails;
+#or sql server use
+SELECT SUBSTRING(FullName, 1, CHARINDEX(' ',FullName)) 
+FROM EmployeeDetails;
+#to find uppercase name and lowercase city name 
+SELECT UPPER(FullName), LOWER(City) 
+FROM EmployeeDetails;
+#total occurance prticular character in fullname '_''n'-howmanytimes 'n' present we will see
+SELECT FullName, 
+LENGTH(FullName) - LENGTH(REPLACE(FullName, 'n', ''))
+FROM EmployeeDetails;
+#fullname replace spaces-removing leading and trailing spaces
+UPDATE EmployeeDetails 
+SET FullName = LTRIM(RTRIM(FullName));
+select * from EmployeeDetails;
+#employee not work any project used here is NULL
+SELECT EmpId 
+FROM EmployeeSalary 
+WHERE Project IS NULL;
+#salary greater than 5000 and less than 100000 see
+SELECT FullName 
+FROM EmployeeDetails 
+WHERE EmpId IN 
+(SELECT EmpId FROM EmployeeSalary 
+WHERE Salary BETWEEN 5000 AND 10000);
+#current data and time
+SELECT NOW();
+# to fetch employee details between some date of 2020 year only
+SELECT * FROM EmployeeDetails
+WHERE DateOfJoining BETWEEN '2020/01/01'
+AND '2020/12/31';
+#or if only year use below
+SELECT * FROM EmployeeDetails 
+WHERE YEAR(DateOfJoining) = '2020';
+# employe salary and employee 
+SELECT * FROM EmployeeDetails E
+WHERE EXISTS
+(SELECT * FROM EmployeeSalary S 
+WHERE  E.EmpId = S.EmpId);
+#project wise employee descendig order see
+SELECT Project, count(EmpId) EmpProjectCount
+FROM EmployeeSalary
+GROUP BY Project
+ORDER BY EmpProjectCount DESC;
+#all employee details even emp salary not present
+SELECT E.FullName, S.Salary 
+FROM EmployeeDetails E 
+LEFT JOIN 
+EmployeeSalary S
+ON E.EmpId = S.EmpId;
+#singel tabel we devide two ways--divide two tables
+SELECT DISTINCT E.FullName
+FROM EmployeeDetails E
+INNER JOIN EmployeeDetails M
+ON E.EmpID = M.ManagerID;
+#duplicate records find here see
+SELECT FullName, ManagerId, DateOfJoining, City, COUNT(*)
+FROM EmployeeDetails
+GROUP BY FullName, ManagerId, DateOfJoining, City
+HAVING COUNT(*) > 1;
+#remove duplicates from table--high empid delete from table
+DELETE E1 FROM EmployeeDetails E1
+INNER JOIN EmployeeDetails E2 
+WHERE E1.EmpId > E2.EmpId 
+AND E1.FullName = E2.FullName 
+AND E1.ManagerId = E2.ManagerId
+AND E1.DateOfJoining = E2.DateOfJoining
+AND E1.City = E2.City;
+#odd rows table see table here rm we will see 
+SELECT * FROM EmployeeDetails 
+WHERE MOD (EmpId, 2) <> 0;
+#or
+SELECT *
+FROM (
+      SELECT *, @rowNumber := @rowNumber+ 1 rn
+      FROM EmployeeSalary
+      JOIN (SELECT @rowNumber:= 0) r
+     ) t 
+WHERE rn % 2 = 1;
+#even row table
+SELECT * FROM EmployeeDetails 
+WHERE MOD (EmpId, 2) = 0;
+#or
+SELECT *
+FROM (
+      SELECT *, @rowNumber := @rowNumber+ 1 rn
+      FROM EmployeeSalary
+      JOIN (SELECT @rowNumber:= 0) r
+     ) t 
+WHERE rn % 2 = 0;
+#create new table from copied from exists table
+CREATE TABLE Managersalary
+SELECT * FROM EmployeeSalary;
+#create table empty from copied from existing table
+CREATE TABLE NewTable1 
+SELECT * FROM EmployeeSalary where 1=0;
+#top records in salary in table
+SELECT *
+FROM EmployeeSalary
+ORDER BY Salary DESC LIMIT N;
+#nth highest salary table
+SELECT Salary
+FROM Employee
+ORDER BY Salary DESC LIMIT N-1,1;
+#or
+SELECT Salary
+FROM EmployeeSalary
+ORDER BY Salary DESC
+LIMIT 1 OFFSET N-1;
+#3rd highest salary query
+SELECT Salary
+FROM EmployeeSalary Emp1
+WHERE 2 = (
+                SELECT COUNT( DISTINCT ( Emp2.Salary ) )
+                FROM EmployeeSalary Emp2
+                WHERE Emp2.Salary > Emp1.Salary
+            )
+#or
+SELECT Salary
+FROM EmployeeSalary Emp1
+WHERE N-1 = (
+                SELECT COUNT( DISTINCT ( Emp2.Salary ) )
+                FROM EmployeeSalary Emp2
+                WHERE Emp2.Salary > Emp1.Salary
+            )
+------------------------------------------------------------------------------------------
